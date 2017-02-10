@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import { hashHistory } from 'react-router';
+import store from '../store';
 
 import initialState from '../initialState';
 import AUDIO from '../audio';
@@ -9,6 +10,7 @@ import Albums from '../components/Albums.js';
 import Album from '../components/Album';
 import Sidebar from '../components/Sidebar';
 import Player from '../components/Player';
+import {play, pause, load, startSong, toggle, toggleOne, next, prev} from '../action-creators/player';
 
 import { convertAlbum, convertAlbums, convertSong, skip } from '../utils';
 
@@ -16,12 +18,13 @@ export default class AppContainer extends Component {
 
   constructor (props) {
     super(props);
-    this.state = initialState;
+    this.state = store.getState();
+    this.state = Object.assign(initialState, store.getState());
 
-    this.toggle = this.toggle.bind(this);
-    this.toggleOne = this.toggleOne.bind(this);
-    this.next = this.next.bind(this);
-    this.prev = this.prev.bind(this);
+    // this.toggle = this.toggle.bind(this);
+    // this.toggleOne = this.toggleOne.bind(this);
+    // this.next = this.next.bind(this);
+    // this.prev = this.prev.bind(this);
     this.selectAlbum = this.selectAlbum.bind(this);
     this.selectArtist = this.selectArtist.bind(this);
     this.addPlaylist = this.addPlaylist.bind(this);
@@ -31,6 +34,11 @@ export default class AppContainer extends Component {
   }
 
   componentDidMount () {
+
+    this.unsubscribe = store.subscribe(() => {
+        this.setState(store.getState());
+    });
+
 
     Promise
       .all([
@@ -47,6 +55,10 @@ export default class AppContainer extends Component {
       this.setProgress(AUDIO.currentTime / AUDIO.duration));
   }
 
+  componentWillUnmount(){
+    this.unsubscribe();
+  }
+
   onLoad (albums, artists, playlists) {
     this.setState({
       albums: convertAlbums(albums),
@@ -56,47 +68,35 @@ export default class AppContainer extends Component {
   }
 
   play () {
-    AUDIO.play();
-    this.setState({ isPlaying: true });
+    store.dispatch(play());
   }
 
   pause () {
-    AUDIO.pause();
-    this.setState({ isPlaying: false });
+    store.dispatch(pause());
   }
 
   load (currentSong, currentSongList) {
-    AUDIO.src = currentSong.audioUrl;
-    AUDIO.load();
-    this.setState({
-      currentSong: currentSong,
-      currentSongList: currentSongList
-    });
+    store.dispatch(load(currentSong, currentSongList));
   }
 
   startSong (song, list) {
-    this.pause();
-    this.load(song, list);
-    this.play();
+    store.dispatch(startSong (song, list));
   }
 
   toggleOne (selectedSong, selectedSongList) {
-    if (selectedSong.id !== this.state.currentSong.id)
-      this.startSong(selectedSong, selectedSongList);
-    else this.toggle();
+    store.dispatch(toggleOne (selectedSong, selectedSongList));
   }
 
   toggle () {
-    if (this.state.isPlaying) this.pause();
-    else this.play();
+    store.dispatch(toggle ());
   }
 
   next () {
-    this.startSong(...skip(1, this.state));
+    store.dispatch(next ());
   }
 
   prev () {
-    this.startSong(...skip(-1, this.state));
+    store.dispatch(prev());
   }
 
   setProgress (progress) {
@@ -196,7 +196,11 @@ export default class AppContainer extends Component {
       addSongToPlaylist: this.addSongToPlaylist
     });
 
+      console.log(this.state.player.currentSong);
+
     return (
+
+
       <div id="main" className="container-fluid">
         <div className="col-xs-2">
           <Sidebar playlists={this.state.playlists} />
@@ -207,9 +211,9 @@ export default class AppContainer extends Component {
         }
         </div>
         <Player
-          currentSong={this.state.currentSong}
-          currentSongList={this.state.currentSongList}
-          isPlaying={this.state.isPlaying}
+          currentSong={this.state.player.currentSong}
+          currentSongList={this.state.player.currentSongList}
+          isPlaying={this.state.player.isPlaying}
           progress={this.state.progress}
           next={this.next}
           prev={this.prev}

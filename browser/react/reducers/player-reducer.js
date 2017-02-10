@@ -27,10 +27,11 @@ export default function (state = initialPlayerState, action) {
       break;
 
     case SET_CURRENT_SONG:
-        newState.currentSong =
+        newState.currentSong = action.currentSong;
       break;
 
     case SET_LIST:
+      newState.currentSongList = action.currentSongList;
       break;
 
     default:

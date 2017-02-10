@@ -4,6 +4,7 @@ import {
   SET_CURRENT_SONG,
   SET_LIST,
 } from '../constants';
+
 import axios from 'axios';
 
 // function selectSong(songId){
@@ -28,29 +29,58 @@ const setCurrentSongList = (currentSongList) => ({
 });
 
 
-
 export const play = () => {
   return dispatch => {
     audio.play();
     dispatch(startPlaying());
   }
-}
+};
 
 export const pause = () => {
   return dispatch => {
     audio.pause();
     dispatch(stopPlaying());
   }
-}
+};
 
-load (currentSong, currentSongList) {
+export const load = (currentSong, currentSongList) => dispatch => {
+
     AUDIO.src = currentSong.audioUrl;
     AUDIO.load();
-    this.setState({
-      currentSong: currentSong,
-      currentSongList: currentSongList
-    });
-  }
+    dispatch(setCurrentSongList(currentSong));
+    dispatch(setCurrentSongList(currentSongList));
+};
+
+export const startSong = (song, list) => dispatch => {
+  dispatch(pause());
+  dispatch(load(song, list));
+  dispatch(play());
+};
+
+export const toggleOne = (selectedSong, selectedSongList)=> (dispatch, getState) => {
+    let {currentSong} = getState().player;
+    if (selectedSong.id !== currentSong.id){
+      dispatch(startSong(selectedSong, selectedSongList));
+    }
+    else dispatch(toggle());
+}
+
+export const next = () =>
+  (dispatch, getState) => {
+    dispatch(startSong(...skip(1, getState().player)));
+};
+
+export const prev = () =>
+  (dispatch, getState) => {
+    dispatch(startSong(...skip(-1, getState().player)));
+};
+
+
+  // setProgress (progress) {
+  //   this.setState({ progress: progress });
+  // }
+
+
 
 // const doSeveralThings = (stuffId, thingsId) => {
 //   return dispatch => {
