@@ -3,7 +3,7 @@ import setLyrics from '../action-creators/lyrics';
 
 const initialState = { text: '' };
 
-function reducer (prevState = initialState, action){
+function lyricsReducer (prevState = initialState, action){
 	let newState = Object.assign({}, prevState);
 
 
@@ -23,4 +23,4 @@ function reducer (prevState = initialState, action){
 
 }
 
-export default reducer;
+export default lyricsReducer;

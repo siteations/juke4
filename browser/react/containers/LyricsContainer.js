@@ -1,6 +1,7 @@
 import React from 'react';
 import store from '../store';
 import setLyrics from '../action-creators/lyrics';
+import {fetchLyrics} from '../action-creators/lyrics';
 import Lyrics from '../components/Lyrics';
 import axios from 'axios';
 
@@ -17,7 +18,7 @@ class LyricsContainer extends React.Component{
 
 	componentDidMount(){
 
-		this.unsubscribe = store.subscribe(function () {
+		this.unsubscribe = store.subscribe(() => {
 		    this.setState(store.getState());
 		});
 	}
@@ -38,16 +39,15 @@ class LyricsContainer extends React.Component{
 	handleSubmit(){
 
 		if (this.state.artistQuery && this.state.songQuery) {
-			axios.get(`/api/lyrics/${this.state.artistQuery}/${this.state.songQuery}`)
-			.then(res => res.data)
-			.then(result => { console.log(result.lyric); return store.dispatch(setLyrics(result.lyric)) });
+
+			fetchLyrics(this.state.artistQuery, this.state.songQuery)(store.dispatch, store.getState);
 
 		}
 	}
 
 	render(){
 		return (
-		<Lyrics artistQuery={this.state.artistQuery} songQuery={this.state.songQuery} setArtist={this.setArtist} setSong={this.setSong} submit={this.handleSubmit} text={this.state.text} />
+		<Lyrics artistQuery={this.state.artistQuery} songQuery={this.state.songQuery} setArtist={this.setArtist} setSong={this.setSong} submit={this.handleSubmit} text={this.state.lyrics.text} />
 		);
 	}
 
